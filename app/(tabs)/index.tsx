@@ -1,98 +1,113 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import Feather from '@expo/vector-icons/Feather';
+import FloatingButton from '@/components/floating-button';
+import { useRouter } from 'expo-router';
+import { useFoodContext } from '@/context/FoodContext';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+export default function FoodScreen() {
+  const router = useRouter();
+  const { foods, deleteFood } = useFoodContext();
 
-export default function HomeScreen() {
+  const getDaysRemaining = (expiryDate: Date): number => {
+    const today = new Date();
+    const expiry = new Date(expiryDate);
+    const diffTime = expiry.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  const handleEditFood = (foodId: number) => {
+    router.push(`/edit-food?id=${foodId}`);
+  };
+
+  const handleDeleteFood = (foodId: number, foodName: string) => {
+    Alert.alert(
+      'Eliminar alimento',
+      `¿Estás seguro de eliminar "${foodName}"?`,
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: () => {
+            deleteFood(foodId);
+          },
+        },
+      ]
+    );
+  };
+
+  const handleAddFood = () => {
+    router.push('/add-food');
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <View className="flex-1 bg-[#0a0f14] px-4">
+      <Text className="text-3xl font-bold text-start mt-16 text-black dark:text-white">
+        My fridge
+      </Text>
+      <ScrollView className="mt-4">
+        {foods.length === 0 && (
+          <View className="flex-1 items-center justify-center mt-10">
+            <Feather name="clipboard" size={64} color="#00ff9d" />
+            <Text className="text-white text-xl mt-4">No hay alimentos</Text>
+            <Text className="text-gray-400 mt-2 text-center">
+              Agrega tu primer alimento para comenzar
+            </Text>
+          </View>
+        )}
+        {foods.map((food) => {
+          const daysRemaining = getDaysRemaining(food.expiryDate);
+          const isExpiringSoon = daysRemaining <= 3;
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+          return (
+            <View key={food.id} className="bg-gray-800 p-4 mb-3 rounded-lg">
+              <View className="flex-row justify-between items-start mb-2">
+                <View>
+                  <Text className="text-xl font-semibold text-white">
+                    {food.name}
+                  </Text>
+                  <Text className="text-gray-400 text-sm">
+                    {food.category}
+                  </Text>
+                </View>
+
+                <View className={`px-3 py-1 rounded-full ${isExpiringSoon ? 'bg-red-500' : 'bg-[#00ff9d]'}`}>
+                  <Text className={`text-xs font-semibold ${isExpiringSoon ? 'text-white' : 'text-black'}`}>
+                    {daysRemaining} días
+                  </Text>
+                </View>
+              </View>
+
+              <View className="flex-row justify-between items-center mt-2">
+                <Text className="text-gray-300 text-base">
+                  {food.quantity} {food.unit}
+                </Text>
+
+                <View className="flex-row gap-2">
+                  <TouchableOpacity
+                    onPress={() => handleEditFood(food.id)}
+                    className="bg-[#00ff9d] px-4 py-2 rounded-lg"
+                  >
+                    <Feather name="edit" size={20} color="#131b24" />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => handleDeleteFood(food.id, food.name)}
+                    className="bg-red-500 px-4 py-2 rounded-lg"
+                  >
+                    <Feather name="trash-2" size={20} color="white" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          );
+        })}
+      </ScrollView>
+      <FloatingButton onPress={handleAddFood} />
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
