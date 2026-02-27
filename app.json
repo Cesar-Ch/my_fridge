@@ -4,7 +4,7 @@
     "slug": "my_fridge",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.jpg",
+    "icon": "./assets/images/icon.png",
     "scheme": "myfridge",
     "userInterfaceStyle": "automatic",
     "backgroundColor": "#131b23",
@@ -14,13 +14,14 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#131b23",
-        "foregroundImage": "./assets/images/icon.jpg"
+        "foregroundImage": "./assets/images/icon.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.cesarch.my_fridge"
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/icon.jpg"
+      "favicon": "./assets/images/icon.png"
     },
     "plugins": [
       "expo-router",
@@ -41,6 +42,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "83370982-eb5f-4591-b251-4259eea8ba9c"
+      }
     }
   }
 }
